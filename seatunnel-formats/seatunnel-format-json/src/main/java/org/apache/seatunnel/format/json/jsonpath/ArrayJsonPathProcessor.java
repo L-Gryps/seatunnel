@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -16,8 +16,6 @@
  */
 
 package org.apache.seatunnel.format.json.jsonpath;
-
-import org.apache.seatunnel.common.utils.JsonUtils;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
@@ -77,7 +75,7 @@ public class ArrayJsonPathProcessor extends JsonPathProcessorImpl {
 
         String commonPart = parentPath.substring(0, parentPath.indexOf("[*]"));
         String relativePart;
-        
+
         if (!fullPath.contains("[*]")) {
             // For non-array paths when parent has [*]
             relativePart = fullPath.substring(commonPart.length());
@@ -138,8 +136,8 @@ public class ArrayJsonPathProcessor extends JsonPathProcessorImpl {
      */
     private List<List<String>> processObjects(
             List<Map<String, Object>> objects, String commonParentPath, JsonPath[] paths) {
-        List<List<String>> results = new ArrayList<>(paths.size());
-        for (int i = 0; i < paths.size(); i++) {
+        List<List<String>> results = new ArrayList<>(paths.length);
+        for (int i = 0; i < paths.length; i++) {
             results.add(new ArrayList<>(objects.size()));
         }
 

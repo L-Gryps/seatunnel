@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -29,15 +29,15 @@ import java.util.List;
 public class JsonPathProcessorImpl implements JsonPathProcessor {
 
     /** Flag to indicate whether to return null for missing fields */
-    private boolean jsonFiledMissedReturnNull = false;
+    private boolean jsonFieldMissedReturnNull = false;
 
     /**
      * Set whether to return null for missing fields.
      *
-     * @param jsonFiledMissedReturnNull true to return null for missing fields, false otherwise
+     * @param jsonFieldMissedReturnNull true to return null for missing fields, false otherwise
      */
-    public void setJsonFiledMissedReturnNull(boolean jsonFiledMissedReturnNull) {
-        this.jsonFiledMissedReturnNull = jsonFiledMissedReturnNull;
+    public void setJsonFieldMissedReturnNull(boolean jsonFieldMissedReturnNull) {
+        this.jsonFieldMissedReturnNull = jsonFieldMissedReturnNull;
     }
 
     /**
@@ -46,8 +46,8 @@ public class JsonPathProcessorImpl implements JsonPathProcessor {
      *
      * @return true if missing fields should return null, false otherwise
      */
-    protected boolean isJsonFiledMissedReturnNull() {
-        return jsonFiledMissedReturnNull;
+    protected boolean isJsonFieldMissedReturnNull() {
+        return jsonFieldMissedReturnNull;
     }
 
     /** {@inheritDoc} */
@@ -59,7 +59,7 @@ public class JsonPathProcessorImpl implements JsonPathProcessor {
             results.add(jsonReadContext.read(path));
         }
 
-        boolean shouldValidate = !isJsonFiledMissedReturnNull();
+        boolean shouldValidate = !isJsonFieldMissedReturnNull();
         if (shouldValidate) {
             validateResultsConsistency(results, paths);
         }
@@ -72,10 +72,10 @@ public class JsonPathProcessorImpl implements JsonPathProcessor {
      * same size. Scalar paths (returning 0 or 1 record) are allowed to differ and will be
      * broadcast.
      *
-     * @param results The list of results to validate (using raw type for backward compatibility)
+     * @param results The list of results to validate
      * @param paths The JsonPath objects used to generate the results
      */
-    protected void validateResultsConsistency(List results, JsonPath[] paths) {
+    protected void validateResultsConsistency(List<? extends List<?>> results, JsonPath[] paths) {
         if (results.isEmpty()) {
             return;
         }
@@ -83,7 +83,7 @@ public class JsonPathProcessorImpl implements JsonPathProcessor {
         Integer arraySize = null;
         Integer arrayPathIndex = null;
         for (int i = 0; i < results.size(); i++) {
-            List<?> list = (List<?>) results.get(i);
+            List<?> list = results.get(i);
             int size = list.size();
             if (size <= 1) {
                 continue;
@@ -110,7 +110,7 @@ public class JsonPathProcessorImpl implements JsonPathProcessor {
      * @param results The original data matrix
      * @return The flipped data matrix
      */
-    protected List<List<String>> dataFlip(List<List<?>> results) {
+    protected List<List<String>> dataFlip(List<? extends List<?>> results) {
         int maxSize = 0;
         for (List<?> result : results) {
             maxSize = Math.max(maxSize, result.size());

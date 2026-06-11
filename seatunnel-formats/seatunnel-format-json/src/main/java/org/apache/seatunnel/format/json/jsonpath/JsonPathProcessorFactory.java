@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -27,10 +27,10 @@ import java.util.function.Supplier;
 public class JsonPathProcessorFactory {
 
     // List of processor suppliers in order of precedence
-    private static final List<ProcessorMatcher> PROCESSOR_MATCHERS = Arrays.asList(
-            new ProcessorMatcher(path -> path.contains("[*]"), ArrayJsonPathProcessor::new),
-            new ProcessorMatcher(path -> true, JsonPathProcessorImpl::new)
-    );
+    private static final List<ProcessorMatcher> PROCESSOR_MATCHERS =
+            Arrays.asList(
+                    new ProcessorMatcher(path -> path.contains("[*]"), ArrayJsonPathProcessor::new),
+                    new ProcessorMatcher(path -> true, JsonPathProcessorImpl::new));
 
     /**
      * Get the appropriate processor for a single JsonPath.
@@ -60,14 +60,14 @@ public class JsonPathProcessorFactory {
     }
 
     /**
-     * Get the appropriate processor for an array of JsonPaths with jsonFiledMissedReturnNull flag.
+     * Get the appropriate processor for an array of JsonPaths with jsonFieldMissedReturnNull flag.
      *
      * @param paths Array of JsonPath objects
-     * @param jsonFiledMissedReturnNull Whether to return null for missing fields
+     * @param jsonFieldMissedReturnNull Whether to return null for missing fields
      * @return The appropriate JsonPathProcessor
      */
     public static JsonPathProcessor getProcessor(
-            JsonPath[] paths, boolean jsonFiledMissedReturnNull) {
+            JsonPath[] paths, boolean jsonFieldMissedReturnNull) {
         if (paths == null || paths.length == 0) {
             throw new IllegalArgumentException("JsonPath array cannot be null or empty");
         }
@@ -76,8 +76,8 @@ public class JsonPathProcessorFactory {
 
         // If this processor is a JsonPathProcessorImpl and jsonFiledMissedReturnNull is true,
         // we need to set the flag
-        if (processor instanceof JsonPathProcessorImpl && jsonFiledMissedReturnNull) {
-            ((JsonPathProcessorImpl) processor).setJsonFiledMissedReturnNull(true);
+        if (processor instanceof JsonPathProcessorImpl && jsonFieldMissedReturnNull) {
+            ((JsonPathProcessorImpl) processor).setJsonFieldMissedReturnNull(true);
         }
 
         return processor;

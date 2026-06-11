@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -73,9 +73,7 @@ public class JsonPathDeserializationSchema extends JsonDeserializationSchema {
         this.jsonField = new LinkedHashMap<>(jsonField);
     }
 
-    /**
-     * Initialize JsonPath array lazily and cache it.
-     */
+    /** Initialize JsonPath array lazily and cache it. */
     private void initJsonPath() {
         if (jsonPaths == null) {
             jsonPaths = createJsonPaths(jsonField);
