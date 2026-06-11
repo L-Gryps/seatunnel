@@ -119,6 +119,13 @@ public class KafkaSourceOptions extends KafkaBaseOptions {
                                     + "When fail is selected, data format error will block and an exception will be thrown. "
                                     + "When skip is selected, data format error will skip this line data.");
 
+    public static final Option<Map<String, String>> JSON_FIELD =
+            Options.key("json_field")
+                    .type(new TypeReference<Map<String, String>>() {})
+                    .noDefaultValue()
+                    .withDescription(
+                            "SeaTunnel json field. When partial json data is required, this parameter can be configured to obtain data by JsonPath.");
+
     public static final Option<Long> START_MODE_END_TIMESTAMP =
             Options.key("start_mode.end_timestamp")
                     .longType()

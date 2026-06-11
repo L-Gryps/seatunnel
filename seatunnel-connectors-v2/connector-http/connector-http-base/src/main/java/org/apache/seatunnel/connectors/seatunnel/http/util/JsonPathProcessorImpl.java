@@ -55,15 +55,12 @@ public class JsonPathProcessorImpl implements JsonPathProcessor {
     /** {@inheritDoc} */
     @Override
     public List<List<String>> processJsonData(ReadContext jsonReadContext, JsonPath[] paths) {
-        // Default implementation - can be overridden by subclasses
-        List<List<String>> results = new ArrayList<>(paths.length);
+        List results = new ArrayList<>(paths.length);
 
-        // Read all paths
         for (JsonPath path : paths) {
             results.add(jsonReadContext.read(path));
         }
 
-        // Only validate consistency if jsonFiledMissedReturnNull is false
         boolean shouldValidate = !isJsonFiledMissedReturnNull();
         if (shouldValidate) {
             validateResultsConsistency(results, paths);
@@ -73,57 +70,69 @@ public class JsonPathProcessorImpl implements JsonPathProcessor {
     }
 
     /**
-     * Helper method to validate that all results have the same size.
+     * Helper method to validate that all array paths (paths returning multiple records) have the
+     * same size. Scalar paths (returning 0 or 1 record) are allowed to differ and will be
+     * broadcast.
      *
      * @param results The list of results to validate
      * @param paths The JsonPath objects used to generate the results
-     * @throws HttpConnectorException if results are inconsistent
+     * @throws HttpConnectorException if array paths have inconsistent sizes
      */
-    protected void validateResultsConsistency(List<List<String>> results, JsonPath[] paths) {
+    protected void validateResultsConsistency(List results, JsonPath[] paths) {
         if (results.isEmpty()) {
             return;
         }
 
-        int expectedSize = results.get(0).size();
-        for (int i = 1; i < results.size(); i++) {
-            if (results.get(i).size() != expectedSize) {
+        Integer arraySize = null;
+        Integer arrayPathIndex = null;
+        for (int i = 0; i < results.size(); i++) {
+            List<?> list = (List<?>) results.get(i);
+            int size = list.size();
+            if (size <= 1) {
+                continue;
+            }
+            if (arraySize == null) {
+                arraySize = size;
+                arrayPathIndex = i;
+            } else if (size != arraySize) {
                 throw new HttpConnectorException(
                         HttpConnectorErrorCode.FIELD_DATA_IS_INCONSISTENT,
                         String.format(
                                 "[%s](%d) and [%s](%d) the number of parsing records is inconsistent.",
-                                paths[0].getPath(),
-                                expectedSize,
+                                paths[arrayPathIndex].getPath(),
+                                arraySize,
                                 paths[i].getPath(),
-                                results.get(i).size()));
+                                size));
             }
         }
     }
 
     /**
-     * Flips a matrix of results so that rows become columns and vice versa.
+     * Flips a matrix of results so that rows become columns and vice versa. Scalar paths returning
+     * fewer records than the maximum array size will have their value broadcast across all rows.
      *
      * @param results The original data matrix
      * @return The flipped data matrix
      */
-    protected List<List<String>> dataFlip(List<List<String>> results) {
-        List<List<String>> datas = new ArrayList<>();
+    protected List<List<String>> dataFlip(List results) {
+        int maxSize = 0;
+        for (Object resultObj : results) {
+            List<?> result = (List<?>) resultObj;
+            maxSize = Math.max(maxSize, result.size());
+        }
 
-        for (int i = 0; i < results.size(); i++) {
-            List<String> result = results.get(i);
-            if (i == 0) {
-                for (Object o : result) {
-                    String val = o == null ? null : o.toString();
-                    List<String> row = new ArrayList<>(results.size());
-                    row.add(val);
-                    datas.add(row);
-                }
-            } else {
-                for (int j = 0; j < result.size(); j++) {
-                    Object o = result.get(j);
-                    String val = o == null ? null : o.toString();
-                    List<String> row = datas.get(j);
-                    row.add(val);
-                }
+        List<List<String>> datas = new ArrayList<>();
+        for (int i = 0; i < maxSize; i++) {
+            datas.add(new ArrayList<>(results.size()));
+        }
+
+        for (Object resultObj : results) {
+            List<?> result = (List<?>) resultObj;
+            int resultSize = result.size();
+            for (int i = 0; i < maxSize; i++) {
+                int index = i < resultSize ? i : resultSize - 1;
+                Object val = resultSize == 0 ? null : result.get(index);
+                datas.get(i).add(val == null ? null : val.toString());
             }
         }
 

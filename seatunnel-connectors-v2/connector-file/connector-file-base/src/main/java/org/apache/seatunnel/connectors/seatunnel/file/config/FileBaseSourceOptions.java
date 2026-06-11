@@ -17,6 +17,8 @@
 
 package org.apache.seatunnel.connectors.seatunnel.file.config;
 
+import org.apache.seatunnel.shade.com.fasterxml.jackson.core.type.TypeReference;
+
 import org.apache.seatunnel.api.configuration.Option;
 import org.apache.seatunnel.api.configuration.Options;
 import org.apache.seatunnel.format.text.constant.TextFormatConstant;
@@ -92,6 +94,13 @@ public class FileBaseSourceOptions extends FileBaseOptions {
                     .noDefaultValue()
                     .withDescription(
                             "Specifies the tag name of the data rows within the XML file, only valid for XML files.");
+
+    public static final Option<Map<String, String>> JSON_FIELD =
+            Options.key("json_field")
+                    .type(new TypeReference<Map<String, String>>() {})
+                    .noDefaultValue()
+                    .withDescription(
+                            "SeaTunnel json field. When partial json data is required, this parameter can be configured to obtain data by JsonPath.");
 
     public static final Option<String> FILE_FILTER_PATTERN =
             Options.key("file_filter_pattern")

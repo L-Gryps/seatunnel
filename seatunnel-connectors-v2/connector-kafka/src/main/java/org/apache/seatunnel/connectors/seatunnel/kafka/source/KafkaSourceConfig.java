@@ -52,6 +52,7 @@ import org.apache.seatunnel.format.json.canal.CanalJsonDeserializationSchema;
 import org.apache.seatunnel.format.json.debezium.DebeziumJsonDeserializationSchema;
 import org.apache.seatunnel.format.json.debezium.DebeziumJsonDeserializationSchemaDispatcher;
 import org.apache.seatunnel.format.json.exception.SeaTunnelJsonFormatException;
+import org.apache.seatunnel.format.json.jsonpath.JsonPathDeserializationSchema;
 import org.apache.seatunnel.format.json.maxwell.MaxWellJsonDeserializationSchema;
 import org.apache.seatunnel.format.json.ogg.OggJsonDeserializationSchema;
 import org.apache.seatunnel.format.protobuf.ProtobufDeserializationSchema;
@@ -89,6 +90,7 @@ import static org.apache.seatunnel.connectors.seatunnel.kafka.config.KafkaSource
 import static org.apache.seatunnel.connectors.seatunnel.kafka.config.KafkaSourceOptions.FIELD_DELIMITER;
 import static org.apache.seatunnel.connectors.seatunnel.kafka.config.KafkaSourceOptions.FORMAT;
 import static org.apache.seatunnel.connectors.seatunnel.kafka.config.KafkaSourceOptions.IGNORE_NO_LEADER_PARTITION;
+import static org.apache.seatunnel.connectors.seatunnel.kafka.config.KafkaSourceOptions.JSON_FIELD;
 import static org.apache.seatunnel.connectors.seatunnel.kafka.config.KafkaSourceOptions.KAFKA_CONFIG;
 import static org.apache.seatunnel.connectors.seatunnel.kafka.config.KafkaSourceOptions.KEY_PARTITION_DISCOVERY_INTERVAL_MILLIS;
 import static org.apache.seatunnel.connectors.seatunnel.kafka.config.KafkaSourceOptions.KEY_POLL_TIMEOUT;
@@ -337,7 +339,13 @@ public class KafkaSourceConfig implements Serializable {
         } else {
             switch (format) {
                 case JSON:
-                    schema = new JsonDeserializationSchema(catalogTable, false, false);
+                    if (readonlyConfig.getOptional(JSON_FIELD).isPresent()) {
+                        schema =
+                                new JsonPathDeserializationSchema(
+                                        catalogTable, false, false, readonlyConfig.get(JSON_FIELD));
+                    } else {
+                        schema = new JsonDeserializationSchema(catalogTable, false, false);
+                    }
                     break;
                 case TEXT:
                     String delimiter = readonlyConfig.get(FIELD_DELIMITER);

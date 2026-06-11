@@ -32,6 +32,7 @@ import org.apache.seatunnel.connectors.seatunnel.file.exception.FileConnectorErr
 import org.apache.seatunnel.connectors.seatunnel.file.exception.FileConnectorException;
 import org.apache.seatunnel.connectors.seatunnel.file.source.split.FileSourceSplit;
 import org.apache.seatunnel.format.json.JsonDeserializationSchema;
+import org.apache.seatunnel.format.json.jsonpath.JsonPathDeserializationSchema;
 
 import io.airlift.compress.lzo.LzopCodec;
 import lombok.extern.slf4j.Slf4j;
@@ -66,12 +67,17 @@ public class JsonReadStrategy extends AbstractReadStrategy {
     @Override
     public void setCatalogTable(CatalogTable catalogTable) {
         super.setCatalogTable(catalogTable);
-        if (isMergePartition) {
+        SeaTunnelRowType rowType =
+                isMergePartition ? this.seaTunnelRowTypeWithPartition : this.seaTunnelRowType;
+        if (readonlyConfig.getOptional(FileBaseSourceOptions.JSON_FIELD).isPresent()) {
             deserializationSchema =
-                    new JsonDeserializationSchema(false, false, this.seaTunnelRowTypeWithPartition);
+                    new JsonPathDeserializationSchema(
+                            catalogTable,
+                            false,
+                            false,
+                            readonlyConfig.get(FileBaseSourceOptions.JSON_FIELD));
         } else {
-            deserializationSchema =
-                    new JsonDeserializationSchema(false, false, this.seaTunnelRowType);
+            deserializationSchema = new JsonDeserializationSchema(false, false, rowType);
         }
     }
 
@@ -124,17 +130,28 @@ public class JsonReadStrategy extends AbstractReadStrategy {
                     .forEach(
                             line -> {
                                 try {
-                                    SeaTunnelRow seaTunnelRow =
-                                            deserializationSchema.deserialize(
-                                                    line.getBytes(StandardCharsets.UTF_8));
-                                    if (isMergePartition) {
-                                        int index = seaTunnelRowType.getTotalFields();
-                                        for (String value : partitionsMap.values()) {
-                                            seaTunnelRow.setField(index++, value);
+                                    if (deserializationSchema
+                                            instanceof JsonPathDeserializationSchema) {
+                                        Collector<SeaTunnelRow> wrappedCollector =
+                                                createWrappedCollector(
+                                                        output, partitionsMap, split.getTableId());
+                                        ((JsonPathDeserializationSchema) deserializationSchema)
+                                                .collect(
+                                                        line.getBytes(StandardCharsets.UTF_8),
+                                                        wrappedCollector);
+                                    } else {
+                                        SeaTunnelRow seaTunnelRow =
+                                                deserializationSchema.deserialize(
+                                                        line.getBytes(StandardCharsets.UTF_8));
+                                        if (isMergePartition) {
+                                            int index = seaTunnelRowType.getTotalFields();
+                                            for (String value : partitionsMap.values()) {
+                                                seaTunnelRow.setField(index++, value);
+                                            }
                                         }
+                                        seaTunnelRow.setTableId(split.getTableId());
+                                        output.collect(seaTunnelRow);
                                     }
-                                    seaTunnelRow.setTableId(split.getTableId());
-                                    output.collect(seaTunnelRow);
                                 } catch (IOException e) {
                                     String errorMsg =
                                             String.format(
@@ -154,5 +171,27 @@ public class JsonReadStrategy extends AbstractReadStrategy {
         throw new FileConnectorException(
                 CommonErrorCodeDeprecated.UNSUPPORTED_OPERATION,
                 "User must defined schema for json file type");
+    }
+
+    private Collector<SeaTunnelRow> createWrappedCollector(
+            Collector<SeaTunnelRow> output, Map<String, String> partitionsMap, String tableId) {
+        return new Collector<SeaTunnelRow>() {
+            @Override
+            public void collect(SeaTunnelRow row) {
+                if (isMergePartition) {
+                    int index = seaTunnelRowType.getTotalFields();
+                    for (String value : partitionsMap.values()) {
+                        row.setField(index++, value);
+                    }
+                }
+                row.setTableId(tableId);
+                output.collect(row);
+            }
+
+            @Override
+            public Object getCheckpointLock() {
+                return output.getCheckpointLock();
+            }
+        };
     }
 }
