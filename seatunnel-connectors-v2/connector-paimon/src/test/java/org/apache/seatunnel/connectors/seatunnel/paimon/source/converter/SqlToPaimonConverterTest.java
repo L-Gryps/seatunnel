@@ -50,6 +50,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.apache.seatunnel.connectors.seatunnel.paimon.source.converter.SqlToPaimonPredicateConverter.convertToPlainSelect;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -135,7 +136,16 @@ public class SqlToPaimonConverterTest {
                         builder.equal(
                                 13, DateTimeUtils.toInternal(LocalTime.parse("12:00:00.123"))));
 
-        assertEquals(expectedPredicate.toString(), predicate.toString());
+        // Paimon 1.4+ flattens and reorders the AND compound, so the exact tree string is no
+        // longer stable. Compare the flattened set of leaf predicates instead, which is
+        // order- and structure-independent while still validating every condition.
+        assertEquals(
+                PredicateBuilder.splitAnd(expectedPredicate).stream()
+                        .map(Predicate::toString)
+                        .collect(Collectors.toSet()),
+                PredicateBuilder.splitAnd(predicate).stream()
+                        .map(Predicate::toString)
+                        .collect(Collectors.toSet()));
     }
 
     @Test

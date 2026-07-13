@@ -15,7 +15,8 @@ Read data from Apache Paimon.
 | 2.3.2  -  2.3.3   | 0.4-SNAPSHOT     |
 | 2.3.4             | 0.6-SNAPSHOT     |
 | 2.3.5  -  2.3.11  | 0.7.0-incubating |
-| 2.3.12  - 2.3.13  | 1.1.1            |
+| 2.3.12            | 1.1.1            |
+| 2.3.13            | 1.4.2            |
 
 ### Key Considerations for Upgrading Paimon from `0.7.0-incubating` to `1.1.1`
 
@@ -56,6 +57,8 @@ Read data from Apache Paimon.
 | table_list              | array    | no             | -             |
 | user                    | String   | No             | -             |
 | password                | String   | No             | -             |
+| jdbc.user               | String   | No             | -             |
+| jdbc.password           | String   | No             | -             |
 | hdfs_site_path          | String   | No             | -             |
 | query                   | String   | No             | -             |
 | paimon.hadoop.conf      | Map      | No             | -             |
@@ -67,11 +70,19 @@ Paimon warehouse path
 
 ### catalog_type [string]
 
-Catalog type of Paimon, support filesystem and hive
+Catalog type of Paimon, support filesystem, hive and jdbc
 
 ### catalog_uri [string]
 
-Catalog uri of Paimon, only needed when catalog_type is hive
+Catalog uri of Paimon, needed when catalog_type is hive or jdbc
+
+### jdbc.user [string]
+
+The jdbc user to access the metastore database, only needed when catalog_type is jdbc
+
+### jdbc.password [string]
+
+The jdbc password to access the metastore database, only needed when catalog_type is jdbc
 
 ### database [string]
 

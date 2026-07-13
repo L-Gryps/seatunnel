@@ -44,7 +44,21 @@ public class PaimonBaseOptions {
             Options.key("catalog_uri")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("The uri of paimon with hive catalog");
+                    .withDescription("The uri of paimon with hive or jdbc catalog");
+
+    public static final Option<String> JDBC_USER =
+            Options.key("jdbc.user")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "The jdbc user to access the metastore database, only needed when catalog_type is jdbc");
+
+    public static final Option<String> JDBC_PASSWORD =
+            Options.key("jdbc.password")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "The jdbc password to access the metastore database, only needed when catalog_type is jdbc");
 
     public static final Option<String> CATALOG_NAME =
             Options.key("catalog_name")

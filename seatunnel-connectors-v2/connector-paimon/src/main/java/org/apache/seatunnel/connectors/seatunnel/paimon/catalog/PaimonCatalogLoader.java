@@ -59,6 +59,8 @@ public class PaimonCatalogLoader implements Serializable {
     private String warehouse;
     private PaimonCatalogEnum catalogType;
     private String catalogUri;
+    private String jdbcUser;
+    private String jdbcPassword;
 
     private PaimonHadoopConfiguration paimonHadoopConfiguration;
     protected String user;
@@ -68,6 +70,8 @@ public class PaimonCatalogLoader implements Serializable {
         this.warehouse = paimonConfig.getWarehouse();
         this.catalogType = paimonConfig.getCatalogType();
         this.catalogUri = paimonConfig.getCatalogUri();
+        this.jdbcUser = paimonConfig.getJdbcUser();
+        this.jdbcPassword = paimonConfig.getJdbcPassword();
         this.paimonHadoopConfiguration = PaimonSecurityContext.loadHadoopConfig(paimonConfig);
         this.user = paimonConfig.getUser();
         this.password = paimonConfig.getPassword();
@@ -96,6 +100,15 @@ public class PaimonCatalogLoader implements Serializable {
         if (PaimonCatalogEnum.HIVE.getType().equals(catalogType.getType())) {
             optionsMap.put(CatalogOptions.URI.key(), catalogUri);
             optionsMap.putAll(paimonHadoopConfiguration.getPropsWithPrefix(StringUtils.EMPTY));
+        }
+        if (PaimonCatalogEnum.JDBC.getType().equals(catalogType.getType())) {
+            optionsMap.put(CatalogOptions.URI.key(), catalogUri);
+            if (StringUtils.isNotBlank(jdbcUser)) {
+                optionsMap.put(PaimonBaseOptions.JDBC_USER.key(), jdbcUser);
+            }
+            if (StringUtils.isNotBlank(jdbcPassword)) {
+                optionsMap.put(PaimonBaseOptions.JDBC_PASSWORD.key(), jdbcPassword);
+            }
         }
         final Options options = Options.fromMap(optionsMap);
         PaimonSecurityContext.shouldEnableKerberos(paimonHadoopConfiguration);

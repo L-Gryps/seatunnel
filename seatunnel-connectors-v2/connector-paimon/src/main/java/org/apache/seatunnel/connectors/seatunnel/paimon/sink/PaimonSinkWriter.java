@@ -167,7 +167,7 @@ public class PaimonSinkWriter
         // starting job. For tables with a large amount of data, there will be a significant loss in
         // performance. Moreover, initialization takes a long time. This mode is not supported at
         // this time.
-        if (BucketMode.CROSS_PARTITION == bucketMode) {
+        if (BucketMode.KEY_DYNAMIC == bucketMode) {
             throw new UnsupportedOperationException(
                     "Cross Partitions Upsert Dynamic Bucket Mode is not supported.");
         }
@@ -283,7 +283,7 @@ public class PaimonSinkWriter
                 throw new PaimonConnectorException(
                         PaimonConnectorErrorCode.BRANCH_NOT_EXISTS, branchName);
             }
-            if (!branchManager.DEFAULT_MAIN_BRANCH.equalsIgnoreCase(branchName)) {
+            if (!BranchManager.isMainBranch(branchName)) {
                 this.paimonTable = this.paimonTable.switchToBranch(branchName);
                 log.info("Re-switched to branch {} after reopening table", branchName);
             }

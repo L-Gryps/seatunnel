@@ -211,7 +211,7 @@ public class RowConverterTest {
         binaryRowWriter.writeDouble(5, doubleNum);
         binaryRowWriter.writeDecimal(6, Decimal.fromBigDecimal(decimal, 30, 8), 30);
         binaryRowWriter.writeString(7, BinaryString.fromString(string));
-        binaryRowWriter.writeBinary(8, bytes);
+        binaryRowWriter.writeBinary(8, bytes, 0, bytes.length);
         binaryRowWriter.writeBoolean(9, booleanValue);
         binaryRowWriter.writeInt(10, DateTimeUtils.toInternal(date));
         binaryRowWriter.writeTimestamp(11, Timestamp.fromLocalDateTime(timestamp), 6);

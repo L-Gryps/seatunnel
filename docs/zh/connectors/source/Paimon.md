@@ -15,7 +15,8 @@ import ChangeLog from '../changelog/connector-paimon.md';
 | 2.3.2  -  2.3.3   | 0.4-SNAPSHOT     |
 | 2.3.4             | 0.6-SNAPSHOT     |
 | 2.3.5  -  2.3.11  | 0.7.0-incubating |
-| 2.3.12  - 2.3.13  | 1.1.1            |
+| 2.3.12            | 1.1.1            |
+| 2.3.13            | 1.4.2            |
 
 ### 从 0.7 版本升级到 1.1.1 版本的注意事项
 
@@ -56,6 +57,8 @@ import ChangeLog from '../changelog/connector-paimon.md';
 | table_list              | array    | 否      | -             |
 | user                    | String   | 否      | -             |
 | password                | String   | 否      | -             |
+| jdbc.user               | String   | 否      | -             |
+| jdbc.password           | String   | 否      | -             |
 | hdfs_site_path          | String   | 否      | -             |
 | query                   | String   | 否      | -             |
 | paimon.hadoop.conf      | Map      | 否      | -             |
@@ -67,11 +70,19 @@ Paimon warehouse 路径
 
 ### catalog_type [string]
 
-Paimon Catalog 类型，支持 filesystem 和 hive
+Paimon Catalog 类型，支持 filesystem、hive 和 jdbc
 
 ### catalog_uri [string]
 
-Paimon 的 catalog uri，仅当 catalog_type 为 hive 时需要
+Paimon 的 catalog uri，当 catalog_type 为 hive 或 jdbc 时需要
+
+### jdbc.user [string]
+
+访问元数据库的 jdbc 用户名，仅当 catalog_type 为 jdbc 时需要
+
+### jdbc.password [string]
+
+访问元数据库的 jdbc 密码，仅当 catalog_type 为 jdbc 时需要
 
 ### database [string]
 

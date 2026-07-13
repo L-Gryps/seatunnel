@@ -51,6 +51,8 @@ public class PaimonCatalogFactory implements CatalogFactory {
                         PaimonBaseOptions.HADOOP_CONF,
                         PaimonBaseOptions.HADOOP_CONF_PATH,
                         PaimonBaseOptions.CATALOG_TYPE,
+                        PaimonBaseOptions.JDBC_USER,
+                        PaimonBaseOptions.JDBC_PASSWORD,
                         PaimonSinkOptions.SCHEMA_SAVE_MODE,
                         PaimonSinkOptions.DATA_SAVE_MODE,
                         PaimonSinkOptions.PRIMARY_KEYS,
@@ -60,6 +62,10 @@ public class PaimonCatalogFactory implements CatalogFactory {
                 .conditional(
                         PaimonBaseOptions.CATALOG_TYPE,
                         PaimonCatalogEnum.HIVE,
+                        PaimonBaseOptions.CATALOG_URI)
+                .conditional(
+                        PaimonBaseOptions.CATALOG_TYPE,
+                        PaimonCatalogEnum.JDBC,
                         PaimonBaseOptions.CATALOG_URI)
                 .build();
     }

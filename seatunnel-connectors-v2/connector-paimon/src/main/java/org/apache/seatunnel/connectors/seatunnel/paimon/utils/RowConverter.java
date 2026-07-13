@@ -428,7 +428,8 @@ public class RowConverter {
                     binaryWriter.writeString(i, BinaryString.fromString((String) fieldValue));
                     break;
                 case BYTES:
-                    binaryWriter.writeBinary(i, (byte[]) fieldValue);
+                    byte[] bytesValue = (byte[]) fieldValue;
+                    binaryWriter.writeBinary(i, bytesValue, 0, bytesValue.length);
                     break;
                 case BOOLEAN:
                     binaryWriter.writeBoolean(i, (Boolean) fieldValue);

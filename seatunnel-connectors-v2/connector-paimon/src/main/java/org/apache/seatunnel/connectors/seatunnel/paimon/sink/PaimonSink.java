@@ -117,7 +117,7 @@ public class PaimonSink
                     throw new PaimonConnectorException(
                             PaimonConnectorErrorCode.BRANCH_NOT_EXISTS, branchName);
                 }
-                if (!branchManager.DEFAULT_MAIN_BRANCH.equalsIgnoreCase(branchName)) {
+                if (!BranchManager.isMainBranch(branchName)) {
                     this.paimonTable = paimonTable.switchToBranch(branchName);
                     log.info("Switch to branch {}", branchName);
                 }

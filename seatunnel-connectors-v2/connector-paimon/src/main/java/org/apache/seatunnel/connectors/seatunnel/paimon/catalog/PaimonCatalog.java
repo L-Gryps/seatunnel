@@ -319,8 +319,10 @@ public class PaimonCatalog implements Catalog, PaimonTable {
         } else if (cause instanceof RuntimeException) {
             String message = cause.getMessage();
             // https://github.com/apache/paimon/pull/3320/files#diff-d3e068ea8caf83d2371f0eaa1cbf3d02ff06e1c1cdceec5fab2e065cecd96230
-            if (message.contains(
-                    "Cannot define 'bucket-key' with bucket -1, please specify a bucket number.")) {
+            // Paimon >= 1.4 reworded the message to "Cannot define 'bucket-key' with bucket = -1,
+            // please remove the 'bucket-key' setting or specify a bucket number." Match on the
+            // stable prefix so the error code mapping survives minor wording changes.
+            if (message.contains("Cannot define 'bucket-key' with bucket")) {
                 throw new PaimonConnectorException(
                         PaimonConnectorErrorCode.WRITE_PROPS_BUCKET_KEY_ERROR, message);
             }

@@ -54,6 +54,8 @@ public class PaimonConfig implements Serializable {
     protected String hadoopConfPath;
     protected String user;
     protected String password;
+    protected String jdbcUser;
+    protected String jdbcPassword;
 
     public PaimonConfig(ReadonlyConfig readonlyConfig) {
         this.catalogName =
@@ -70,7 +72,8 @@ public class PaimonConfig implements Serializable {
         this.hadoopConfProps = readonlyConfig.get(PaimonBaseOptions.HADOOP_CONF);
         this.hadoopConfPath = readonlyConfig.get(PaimonBaseOptions.HADOOP_CONF_PATH);
         this.catalogType = readonlyConfig.get(PaimonBaseOptions.CATALOG_TYPE);
-        if (PaimonCatalogEnum.HIVE.getType().equals(catalogType.getType())) {
+        if (PaimonCatalogEnum.HIVE.getType().equals(catalogType.getType())
+                || PaimonCatalogEnum.JDBC.getType().equals(catalogType.getType())) {
             this.catalogUri =
                     checkArgumentNotBlank(
                             readonlyConfig.get(PaimonBaseOptions.CATALOG_URI),
@@ -78,6 +81,8 @@ public class PaimonConfig implements Serializable {
         }
         this.user = readonlyConfig.get(PaimonBaseOptions.USER);
         this.password = readonlyConfig.get(PaimonBaseOptions.PASSWORD);
+        this.jdbcUser = readonlyConfig.get(PaimonBaseOptions.JDBC_USER);
+        this.jdbcPassword = readonlyConfig.get(PaimonBaseOptions.JDBC_PASSWORD);
     }
 
     protected String checkArgumentNotBlank(String propValue, String propKey) {

@@ -15,7 +15,8 @@ Apache Paimon数据连接器。支持cdc写以及自动建表。
 | 2.3.2  -  2.3.3   | 0.4-SNAPSHOT     |
 | 2.3.4             | 0.6-SNAPSHOT     |
 | 2.3.5  -  2.3.11  | 0.7.0-incubating |
-| 2.3.12  - 2.3.13  | 1.1.1            |
+| 2.3.12            | 1.1.1            |
+| 2.3.13            | 1.4.2            |
 
 ### 从 0.7 版本升级到 1.1.1 版本的注意事项
 
@@ -62,8 +63,10 @@ libfb303-xxx.jar
 | 名称                           | 类型   | 是否必须 | 默认值                          | 描述                                                                                                   |
 |------------------------------|------|------|------------------------------|------------------------------------------------------------------------------------------------------|
 | warehouse                    | 字符串  | 是    | -                            | Paimon warehouse路径                                                                                   |
-| catalog_type                 | 字符串  | 否    | filesystem                   | Paimon的catalog类型，目前支持filesystem和hive                                                                 |
-| catalog_uri                  | 字符串  | 否    | -                            | Paimon catalog的uri，仅当catalog_type为hive时需要配置                                                          |
+| catalog_type                 | 字符串  | 否    | filesystem                   | Paimon的catalog类型，目前支持filesystem、hive和jdbc                                                              |
+| catalog_uri                  | 字符串  | 否    | -                            | Paimon catalog的uri，当catalog_type为hive或jdbc时需要配置                                                        |
+| jdbc.user                    | 字符串  | 否    | -                            | 访问元数据库的jdbc用户名，仅当catalog_type为jdbc时需要配置                                                                |
+| jdbc.password                | 字符串  | 否    | -                            | 访问元数据库的jdbc密码，仅当catalog_type为jdbc时需要配置                                                                 |
 | database                     | 字符串  | 是    | -                            | 数据库名称                                                                                                |
 | table                        | 字符串  | 是    | -                            | 表名                                                                                                   |
 | user                         | 字符串  | 否    | -                            | paimon开启权限后，用户名                                                                                      |
@@ -391,6 +394,68 @@ sink {
     warehouse="hdfs:///tmp/seatunnel"
     database="seatunnel_test"
     table="st_test3"
+    paimon.hadoop.conf = {
+      fs.defaultFS = "hdfs://nameservice1"
+      dfs.nameservices = "nameservice1"
+      dfs.ha.namenodes.nameservice1 = "nn1,nn2"
+      dfs.namenode.rpc-address.nameservice1.nn1 = "hadoop03:8020"
+      dfs.namenode.rpc-address.nameservice1.nn2 = "hadoop04:8020"
+      dfs.client.failover.proxy.provider.nameservice1 = "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
+      dfs.client.use.datanode.hostname = "true"
+    }
+  }
+}
+
+```
+
+### 单表（Jdbc catalog）
+
+使用 jdbc catalog 时，表的元数据存储在关系型数据库（如 MySQL、PostgreSQL）中，而数据文件仍然写入到 `warehouse` 路径。
+你需要自行在运行环境的 classpath 中提供对应的 jdbc 驱动 jar（例如 `mysql-connector-j`），因为连接器本身并不打包该驱动。
+
+```hocon
+env {
+  parallelism = 1
+  job.mode = "BATCH"
+}
+
+source {
+  FakeSource {
+    schema = {
+      fields {
+        pk_id = bigint
+        name = string
+        score = int
+      }
+      primaryKey {
+        name = "pk_id"
+        columnNames = [pk_id]
+      }
+    }
+    rows = [
+      {
+        kind = INSERT
+        fields = [1, "A", 100]
+      },
+      {
+        kind = INSERT
+        fields = [2, "B", 100]
+      }
+    ]
+  }
+}
+
+sink {
+  Paimon {
+    schema_save_mode = "RECREATE_SCHEMA"
+    catalog_name = "seatunnel_test"
+    catalog_type = "jdbc"
+    catalog_uri = "jdbc:mysql://mysql-host:3306/paimon_metastore"
+    jdbc.user = "root"
+    jdbc.password = "123456"
+    warehouse = "hdfs:///tmp/seatunnel"
+    database = "seatunnel_test"
+    table = "st_test_jdbc"
     paimon.hadoop.conf = {
       fs.defaultFS = "hdfs://nameservice1"
       dfs.nameservices = "nameservice1"

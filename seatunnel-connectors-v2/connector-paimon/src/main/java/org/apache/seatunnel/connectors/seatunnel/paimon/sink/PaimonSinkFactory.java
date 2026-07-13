@@ -54,6 +54,8 @@ public class PaimonSinkFactory implements TableSinkFactory {
                         PaimonSinkOptions.HADOOP_CONF,
                         PaimonSinkOptions.HADOOP_CONF_PATH,
                         PaimonSinkOptions.CATALOG_TYPE,
+                        PaimonSinkOptions.JDBC_USER,
+                        PaimonSinkOptions.JDBC_PASSWORD,
                         PaimonSinkOptions.SCHEMA_SAVE_MODE,
                         PaimonSinkOptions.DATA_SAVE_MODE,
                         PaimonSinkOptions.PRIMARY_KEYS,
@@ -64,6 +66,10 @@ public class PaimonSinkFactory implements TableSinkFactory {
                 .conditional(
                         PaimonSinkOptions.CATALOG_TYPE,
                         PaimonCatalogEnum.HIVE,
+                        PaimonSinkOptions.CATALOG_URI)
+                .conditional(
+                        PaimonSinkOptions.CATALOG_TYPE,
+                        PaimonCatalogEnum.JDBC,
                         PaimonSinkOptions.CATALOG_URI)
                 .build();
     }

@@ -15,7 +15,8 @@ Sink connector for Apache Paimon. It can support cdc mode 、auto create table.
 | 2.3.2  -  2.3.3   | 0.4-SNAPSHOT     |
 | 2.3.4             | 0.6-SNAPSHOT     |
 | 2.3.5  -  2.3.11  | 0.7.0-incubating |
-| 2.3.12  - 2.3.13  | 1.1.1            |
+| 2.3.12            | 1.1.1            |
+| 2.3.13            | 1.4.2            |
 
 ### Key Considerations for Upgrading Paimon from `0.7.0-incubating` to `1.1.1`
 
@@ -63,8 +64,10 @@ libfb303-xxx.jar
 | name                         | type    | required | default value                | Description                                                                                                                                                      |
 |------------------------------|---------|----------|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | warehouse                    | String  | Yes      | -                            | Paimon warehouse path                                                                                                                                            |
-| catalog_type                 | String  | No       | filesystem                   | Catalog type of Paimon, support filesystem and hive                                                                                                              |
-| catalog_uri                  | String  | No       | -                            | Catalog uri of Paimon, only needed when catalog_type is hive                                                                                                     |
+| catalog_type                 | String  | No       | filesystem                   | Catalog type of Paimon, support filesystem, hive and jdbc                                                                                                       |
+| catalog_uri                  | String  | No       | -                            | Catalog uri of Paimon, needed when catalog_type is hive or jdbc                                                                                                  |
+| jdbc.user                    | String  | No       | -                            | The jdbc user to access the metastore database, only needed when catalog_type is jdbc                                                                            |
+| jdbc.password                | String  | No       | -                            | The jdbc password to access the metastore database, only needed when catalog_type is jdbc                                                                        |
 | database                     | String  | Yes      | -                            | The database you want to access                                                                                                                                  |
 | table                        | String  | Yes      | -                            | The table you want to access                                                                                                                                     |
 | user                         | String  | No       | -                            | Paimon user to access table                                                                                                                                      |
@@ -395,6 +398,69 @@ sink {
     warehouse="hdfs:///tmp/seatunnel"
     database="seatunnel_test"
     table="st_test3"
+    paimon.hadoop.conf = {
+      fs.defaultFS = "hdfs://nameservice1"
+      dfs.nameservices = "nameservice1"
+      dfs.ha.namenodes.nameservice1 = "nn1,nn2"
+      dfs.namenode.rpc-address.nameservice1.nn1 = "hadoop03:8020"
+      dfs.namenode.rpc-address.nameservice1.nn2 = "hadoop04:8020"
+      dfs.client.failover.proxy.provider.nameservice1 = "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
+      dfs.client.use.datanode.hostname = "true"
+    }
+  }
+}
+
+```
+
+### Single table(Jdbc catalog)
+
+When using the jdbc catalog, the table metadata is stored in a relational database (such as MySQL or PostgreSQL) while the
+data files are still written to the `warehouse` path. You need to provide the corresponding jdbc driver jar (for example
+`mysql-connector-j`) in your runtime classpath yourself, because the connector does not bundle it.
+
+```hocon
+env {
+  parallelism = 1
+  job.mode = "BATCH"
+}
+
+source {
+  FakeSource {
+    schema = {
+      fields {
+        pk_id = bigint
+        name = string
+        score = int
+      }
+      primaryKey {
+        name = "pk_id"
+        columnNames = [pk_id]
+      }
+    }
+    rows = [
+      {
+        kind = INSERT
+        fields = [1, "A", 100]
+      },
+      {
+        kind = INSERT
+        fields = [2, "B", 100]
+      }
+    ]
+  }
+}
+
+sink {
+  Paimon {
+    schema_save_mode = "RECREATE_SCHEMA"
+    catalog_name = "seatunnel_test"
+    catalog_type = "jdbc"
+    catalog_uri = "jdbc:mysql://mysql-host:3306/paimon_metastore"
+    jdbc.user = "root"
+    jdbc.password = "123456"
+    warehouse = "hdfs:///tmp/seatunnel"
+    database = "seatunnel_test"
+    table = "st_test_jdbc"
     paimon.hadoop.conf = {
       fs.defaultFS = "hdfs://nameservice1"
       dfs.nameservices = "nameservice1"

@@ -34,8 +34,6 @@ import org.apache.paimon.security.SecurityConfiguration;
 import org.apache.paimon.security.SecurityContext;
 
 import lombok.extern.slf4j.Slf4j;
-import sun.security.krb5.Config;
-import sun.security.krb5.KrbException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -141,9 +139,8 @@ public class PaimonSecurityContext extends SecurityContext {
     private static void reloadKrb5conf(String krb5conf) {
         System.setProperty(KRB5_CONF_KEY, krb5conf);
         try {
-            Config.refresh();
             KerberosName.resetDefaultRealm();
-        } catch (KrbException e) {
+        } catch (Exception e) {
             log.warn(
                     "resetting default realm failed, current default realm will still be used.", e);
         }
