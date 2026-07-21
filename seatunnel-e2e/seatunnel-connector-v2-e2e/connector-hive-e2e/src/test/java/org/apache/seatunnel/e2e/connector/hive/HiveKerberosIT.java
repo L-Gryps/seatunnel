@@ -87,7 +87,7 @@ public class HiveKerberosIT extends SeaTunnelContainer {
     }
 
     private String hadoopAwsUrl() {
-        return "https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.1.4/hadoop-aws-3.1.4.jar";
+        return "https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.4.2/hadoop-aws-3.4.2.jar";
     }
 
     private String aliyunSdkOssUrl() {
